@@ -20,6 +20,7 @@ var tempDisplay;
 var humDisplay;
 var windDisplay;
 var uvDisplay;
+var iconDisplay;
 
 
 // Make API call to retrieve current and 5 days objects
@@ -53,7 +54,7 @@ function processData (wObject) {
    }).then(function(onecallObj) {
       console.log("Processed object is a one call obj:", onecallObj);
       renderCurrent(onecallObj);
-      //render5days(x);
+      render5days(onecallObj);
    })
 } // End processData
 
@@ -61,25 +62,30 @@ function processData (wObject) {
 function renderCurrent(weatherObj) {
    console.log(oneCallURL);
    // Display current weekday, month, and date
-   var currentDate = moment().format('dddd') + ", " + moment().format('MMM Do');
+   //var currentDate = moment().format('dddd') + ", " + moment().format('MMM Do');
+   var currentDate = moment().format('l')
+
+   // iconDisplay = $("<img>").attr("src", "http://openweathermap.org/img/wn/10d@2x.png");
+   iconDisplay = $("<img>").attr("src", "http://openweathermap.org/img/wn/" + weatherObj.current.weather[0].icon + "@2x.png");
+
    cityDisplay = $("<div>")
       .text(city + " (" + currentDate + ")")
       .css({
          "font-weight": "bold",
          "fontSize":30,
          "padding-bottom": "10px",
-      });
-   var fahren = (weatherObj.current.temp - 273.15) * 1.8 + 32
-   tempDisplay = $("<div>").text("Tempature: " + fahren + "F");
+      }).append(iconDisplay);
+   
+
+   tempDisplay = $("<div>").text("Tempature: " + kelvinToF(weatherObj.current.temp) + "F");
    humDisplay = $("<div>").text("Humidity: " + weatherObj.current.humidity + "%");
    windDisplay = $("<div>").text("Wind Speed: " + weatherObj.current.wind_speed + " MPH");
    uvDisplay = $("<div>").text("UV Index: " + weatherObj.current.uvi);
 
-   //working https://api.openweathermap.org/data/2.5/uvi?appid=0e3be3e2387201a17d65f7f6c8b863cb&lat=42.36&lon=-71.06
-   //var uvURL = "https://api.openweathermap.org/data/2.5/uvi?appid=" + APIKey + "&lat=" + wObject.coord.lat + "&lon=" + wObject.coord.lon;
    dCurrent();
 } // End renderCurrent
 
+// Display Current Weather
 function dCurrent() {
    $("#today").empty();
    $("#today").append(cityDisplay, tempDisplay,humDisplay, windDisplay, uvDisplay).css ({
@@ -89,6 +95,23 @@ function dCurrent() {
    });
 } // End dCurrent
 
+function render5days(forecastObj) {
+   var fDate = $("<div>").text(moment().add(1, 'day').format('l'));
+   var fTemp = $("<div>").text("Temp: " +  kelvinToF(forecastObj.daily[1].temp.max) + "F");
+   var fHum = $("<div>").text("Humidity: " + forecastObj.daily[1].humidity + "%");
+   var fIcon = $("<img>").attr("src", "http://openweathermap.org/img/wn/" + forecastObj.daily[1].weather[0].icon + "@2x.png");
+   dForecast(fDate, fTemp, fHum, fIcon);
+} 
+
+function dForecast(fDate, fTemp, fHum, fIcon) {
+   $("#forecast").empty();
+   $("#forecast").append(fDate, fIcon, fTemp, fHum);
+}
+
+function kelvinToF (kelvin) {
+   var fahran = ((kelvin - 273.15) * 1.8 + 32).toFixed(2);
+   return fahran
+}
 
 
 
