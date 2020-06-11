@@ -10,6 +10,7 @@ var tempDisplay;
 var humDisplay;
 var windDisplay;
 var uvDisplay;
+var uviDisplay;
 var iconDisplay;
 var forecastDay = 1;
 
@@ -81,8 +82,25 @@ function renderCurrent(weatherObj) {
    tempDisplay = $("<div>").text("Tempature: " + kelvinToF(weatherObj.current.temp) + "F");
    humDisplay = $("<div>").text("Humidity: " + weatherObj.current.humidity + "%");
    windDisplay = $("<div>").text("Wind Speed: " + weatherObj.current.wind_speed + " MPH");
-   uvDisplay = $("<div>").text("UV Index: " + weatherObj.current.uvi);
+   //uvDisplay = $("<div>").text("UV Index: " + weatherObj.current.uvi);
+   uvDisplay = $("<div>").text(weatherObj.current.uvi).css({
+      "border-width": "2px",
+      "border-style":"solid",
+      "border-color": "black",
+      //"background-color":"purple",
+      "color": "black",
+      "border-radius":"20px",
+      "width":"7%"
+   });
 
+   if (weatherObj.current.uvi > 10) {
+      uvDisplay.css("background","red");
+   } else {
+      uvDisplay.css("background","green");
+   } // end Else
+
+   //uviDisplay = $("<div>").text("UV Index:" + uvDisplay).css("display", "inline-block");
+   
    // Call dCurrent to display Weather data
    dCurrent();
 } // End renderCurrent
@@ -90,6 +108,7 @@ function renderCurrent(weatherObj) {
 // Display Current Weather
 function dCurrent() {
    $("#today").empty();
+
    $("#today").append(cityDisplay, tempDisplay,humDisplay, windDisplay, uvDisplay).css ({
       "border-width": "2px",
       "border-style":"solid",
