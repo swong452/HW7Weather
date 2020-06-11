@@ -58,7 +58,7 @@ function processData (wObject) {
    })
 } // End processData
 
-
+// Prepare Current Data
 function renderCurrent(weatherObj) {
    console.log(oneCallURL);
    // Display current weekday, month, and date
@@ -95,6 +95,8 @@ function dCurrent() {
    });
 } // End dCurrent
 
+
+// Prepare forecast data
 function render5days(forecastObj) {
    var fDate = $("<div>").text(moment().add(1, 'day').format('l'));
    var fTemp = $("<div>").text("Temp: " +  kelvinToF(forecastObj.daily[1].temp.max) + "F");
@@ -103,9 +105,19 @@ function render5days(forecastObj) {
    dForecast(fDate, fTemp, fHum, fIcon);
 } 
 
+// Display Forecast Data
 function dForecast(fDate, fTemp, fHum, fIcon) {
-   $("#forecast").empty();
-   $("#forecast").append(fDate, fIcon, fTemp, fHum);
+   var oneDayContainer = $("<div>").append(fDate, fIcon, fTemp, fHum)
+   .css({
+      "border-width": "2px",
+      "border-style":"solid",
+      "border-color": "lightgrey",
+      "width": "20%",
+      "background-color": "lightblue"
+   });
+   $("#forecast").append(oneDayContainer);
+   //$("#forecast").append(fDate, fIcon, fTemp, fHum);
+
 }
 
 function kelvinToF (kelvin) {
