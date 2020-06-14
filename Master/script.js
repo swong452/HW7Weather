@@ -1,8 +1,5 @@
-// Listener on search-button
-$("#search-button").on("click", fetchData);
-   
 var APIKey = "0e3be3e2387201a17d65f7f6c8b863cb";
-var wURL; 
+var wURL;
 var city;
 
 var cityDisplay;
@@ -15,20 +12,92 @@ var iconDisplay;
 var forecastDay = 1;
 var uvPara;
 var uvTotal;
+var arrayLC = [];
+
+//localStorage.clear();
+
+dCityList();
+
+// Display Searched City List History
+// Dyamically create an Li base on the length of the arrayLC
+// Display/attach to class .list-group-history
+function dCityList() {
+   
+   // Clear all content first
+   $(".list-group-history").empty();
+
+   // Retrieve back the localStorage as String first
+   var cityStr = localStorage.getItem("cityList");
+   console.log("In Display City, city object is", cityStr, typeof(cityStr));
+
+   // Convert this back to an Array Obj 
+   var cityObj = JSON.parse(cityStr);
+
+   // Reinitalize the arryLC array with the retreived localstorage info
+   // else, everytime you refresh the page, the arrayLC used to store city,
+   // wil not have previous user entered info; and start the array new with first user input
+
+   if (cityObj) {
+      arrayLC = Array.from(cityObj);
+   }
+   
+
+   console.log("Enter dCityList, After JSON parse; cityObj value ", cityObj, typeof (cityObj));
+
+   if (cityObj){
+      console.log("City Object is NOT Null");
+
+       // Loop thru each city and create new element append to list-group-history
+      for (x = 0; x < cityObj.length; x++) {
+         console.log("Retrived list of searched city", cityObj[x]);
+         var cityLi = $("<div>").text(cityObj[x]).css({
+            "border-style": "solid",
+            "margin": 0,
+            "padding": 0
+         });
+         $(".list-group-history").append(cityLi);
+      } // End For
+
+   }
+
+  
+
+} // end dCity List
 
 
-// Make API call to retrieve current and 5 days objects
+// Wait for user click Search Button
+$("#search-button").on("click", fetchData);
+
+
+// Function fetchData Make API call to retrieve current and 5 days objects
 // Then pass to each respective function for further processing
-function fetchData (event) {
+function fetchData(event) {
    event.stopPropagation();
    event.preventDefault();
 
    // Retrieve user input city
    city = $("#search-value").val();
+   console.log("user input city value:", city);
+
+   // Add this user entered city to the local storage array
+   console.log("ArrayLC should be an object: ", arrayLC, typeof(arrayLC));
+   arrayLC.push(city);
+
+   //console.log("After pushed, array first index 0 value:", arrayLC[0], typeof(arrayLC));
+   // arrayLC.forEach(function(z){
+   //    console.log("Check each item in the arrayLC:",z);
+   // })
+
+   // Local Storage only store Strings, not Object like array
+   // Hence, need JSON stringify to convert the array as string first
+   localStorage.setItem("cityList", JSON.stringify(arrayLC));
+
+   // Reflect lastest Search history
+   //dCityList();
 
    // Fetch current weather data
    wURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
-   
+
    $.ajax({
       url: wURL,
       method: "GET"
@@ -37,31 +106,30 @@ function fetchData (event) {
 
 // This function will use the input obj, extract the Lat and Longtitude info
 // Lat/Lon are required parameters to make oneCall API, which give current and 5 days forecast data
-function processData (wObject) {
-   console.log("Pre processed wObject is: ", wObject);
+function processData(wObject) {
 
    //working:  https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&%20&exclude=minutely,hourly&appid=0e3be3e2387201a17d65f7f6c8b863cb
    oneCallURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + wObject.coord.lat + "&lon=" + wObject.coord.lon + "&exclude=minutely, hourly&appid=" + APIKey;
    $.ajax({
       url: oneCallURL,
-      method:"GET"
-   }).then(function(onecallObj) {
-      console.log("Processed object is a one call obj:", onecallObj);
+      method: "GET"
+   }).then(function (onecallObj) {
+      //console.log("Processed object is a one call obj:", onecallObj);
       renderCurrent(onecallObj);
       $("#forecast").empty();
       $("#forecast").append($("<div>").text("5 day Forecast: ") // Add a title before displaying 5 days forecast
-      .css({
-         "font-weight": "bold",
-         "fontSize":30,
-         "padding-bottom": "10px",
-         "color": "salmon"
-      }));
+         .css({
+            "font-weight": "bold",
+            "fontSize": 30,
+            "padding-bottom": "10px",
+            "color": "salmon"
+         }));
 
       // Display 5 days forecast, one by one
-      for (var i = 1; i <=5 ; i++){
+      for (var i = 1; i <= 5; i++) {
          render5days(onecallObj, i);
       }
-      
+
    })
 } // End processData
 
@@ -76,7 +144,7 @@ function renderCurrent(weatherObj) {
       .text(city + " (" + currentDate + ")")
       .css({
          "font-weight": "bold",
-         "fontSize":30,
+         "fontSize": 30,
          "padding-bottom": "10px",
       }).append(iconDisplay);
 
@@ -87,50 +155,48 @@ function renderCurrent(weatherObj) {
    //Create a seperate container for UV Display
 
    uvDisplay = $("<div>").text(weatherObj.current.uvi).css({
-      "border-width": "2px",
-      "border-style":"solid",
+      "border-width": "1px",
+      "border-style": "solid",
       "border-color": "black",
       //"background-color":"purple",
       "color": "black",
-      "border-radius":"10px",
-      "width":"36%"
+      "border-radius": "10px",
+      "width": "30%"
    });
 
    if (weatherObj.current.uvi > 10) {
       uvDisplay.css({
-         "background":"red",
-         "float":"left",
+         "background": "red",
+         "float": "left",
          //"display":"inline-block"
       });
    } else {
       uvDisplay.css({
-         "background":"green",
-         "float":"left"
+         "background": "green",
+         "float": "left"
       });
    } // end Else
 
    uvPara = $("<div>").text("UV Index:").css({
-      "float":"left",
+      "float": "left",
    });
    uvTotal = $("<div>").append(uvPara, uvDisplay).css({
-      "display":"inline-block"
+      "display": "inline-block"
    });
 
-
-   
-   
    // Call dCurrent to display Weather data
    dCurrent();
 } // End renderCurrent
+
 
 // Display Current Weather
 function dCurrent() {
    $("#today").empty();
 
    // CHANGE uvDISPLAY to uvTotal
-   $("#today").append(cityDisplay, tempDisplay,humDisplay, windDisplay, uvTotal).css ({
+   $("#today").append(cityDisplay, tempDisplay, humDisplay, windDisplay, uvTotal).css({
       "border-width": "2px",
-      "border-style":"solid",
+      "border-style": "solid",
       "border-color": "lightgrey"
    });
 } // End dCurrent
@@ -140,32 +206,28 @@ function dCurrent() {
 function render5days(forecastObj, fDay) {
    // .add function add number of day from current date
    var fDate = $("<div>").text(moment().add(fDay, 'day').format('l'));
-   var fTemp = $("<div>").text("Temp: " +  kelvinToF(forecastObj.daily[fDay].temp.max) + "F");
+   var fTemp = $("<div>").text("Temp: " + kelvinToF(forecastObj.daily[fDay].temp.max) + "F");
    var fHum = $("<div>").text("Humidity: " + forecastObj.daily[fDay].humidity + "%");
    var fIcon = $("<img>").attr("src", "http://openweathermap.org/img/wn/" + forecastObj.daily[fDay].weather[0].icon + "@2x.png");
    dForecast(fDate, fTemp, fHum, fIcon, fDay);
-} 
+}
 
 // Display Forecast Data
 function dForecast(fDate, fTemp, fHum, fIcon, fDay) {
    var oneDayContainer = $("<div>").append(fDate, fIcon, fTemp, fHum)
-   .css({
-      "border-width": "2px",
-      "border-style":"solid",
-      "border-color": "lightgrey",
-      "width": "20%",
-      "background-color": "lightblue",
-      "display": "inline-block"       //so each div line up horizontally
-   });
+      .css({
+         "border-width": "2px",
+         "border-style": "solid",
+         "border-color": "lightgrey",
+         "width": "20%",
+         "background-color": "lightblue",
+         "display": "inline-block"       //so each div line up horizontally
+      });
 
    $("#forecast").append(oneDayContainer);
 } // End dForecast
 
-function kelvinToF (kelvin) {
+function kelvinToF(kelvin) {
    var fahran = ((kelvin - 273.15) * 1.8 + 32).toFixed(2);
    return fahran
 }
-
-
-// Function renderHistory
-
