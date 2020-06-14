@@ -36,18 +36,19 @@ function dCityList() {
    // Reinitalize the arryLC array with the retreived localstorage info
    // else, everytime you refresh the page, the arrayLC used to store city,
    // wil not have previous user entered info; and start the array new with first user input
-
+   // in java script, cannot just have one array = another. need to use Array.from syntax
+   // to copy the content of 1 x array to another.
+   // Only do so , if cityObj is NOT null (cityObj then evaulated to TRUE), then set arrayLC=cityObj
    if (cityObj) {
       arrayLC = Array.from(cityObj);
    }
    
 
-   console.log("Enter dCityList, After JSON parse; cityObj value ", cityObj, typeof (cityObj));
+   //console.log("Enter dCityList, After JSON parse; cityObj value ", cityObj, typeof (cityObj));
 
+   // If first time, cityObj is null -> do not need to loop
+   // Else, Loop thru each city and create new element & append(display) to list-group-history
    if (cityObj){
-      console.log("City Object is NOT Null");
-
-       // Loop thru each city and create new element append to list-group-history
       for (x = 0; x < cityObj.length; x++) {
          console.log("Retrived list of searched city", cityObj[x]);
          var cityLi = $("<div>").text(cityObj[x]).css({
@@ -57,11 +58,7 @@ function dCityList() {
          });
          $(".list-group-history").append(cityLi);
       } // End For
-
    }
-
-  
-
 } // end dCity List
 
 
@@ -92,8 +89,8 @@ function fetchData(event) {
    // Hence, need JSON stringify to convert the array as string first
    localStorage.setItem("cityList", JSON.stringify(arrayLC));
 
-   // Reflect lastest Search history
-   //dCityList();
+   // After user click search, should Reflect lastest Search history list
+   dCityList();
 
    // Fetch current weather data
    wURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
