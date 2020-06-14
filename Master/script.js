@@ -23,12 +23,12 @@ dCityList();
 // Display/attach to class .list-group-history
 function dCityList() {
    
-   // Clear all content first
+   // Clear history list content first
    $(".list-group-history").empty();
 
    // Retrieve back the localStorage as String first
    var cityStr = localStorage.getItem("cityList");
-   console.log("In Display City, city object is", cityStr, typeof(cityStr));
+   //console.log("In Display City, city object is", cityStr, typeof(cityStr));
 
    // Convert this back to an Array Obj 
    var cityObj = JSON.parse(cityStr);
@@ -50,7 +50,6 @@ function dCityList() {
    // Else, Loop thru each city and create new element & append(display) to list-group-history
    if (cityObj){
       for (x = 0; x < cityObj.length; x++) {
-         console.log("Retrived list of searched city", cityObj[x]);
          var cityLi = $("<div>").text(cityObj[x]).css({
             "border-style": "solid",
             "margin": 0,
@@ -74,10 +73,8 @@ function fetchData(event) {
 
    // Retrieve user input city
    city = $("#search-value").val();
-   console.log("user input city value:", city);
 
    // Add this user entered city to the local storage array
-   console.log("ArrayLC should be an object: ", arrayLC, typeof(arrayLC));
    arrayLC.push(city);
 
    //console.log("After pushed, array first index 0 value:", arrayLC[0], typeof(arrayLC));
