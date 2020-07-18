@@ -22,7 +22,7 @@ dCityList();
 // Dyamically create an Li base on the length of the arrayLC
 // Display/attach to class .list-group-history
 function dCityList() {
-   
+
    // Clear history list content first
    $(".list-group-history").empty();
 
@@ -42,27 +42,49 @@ function dCityList() {
    if (cityObj) {
       arrayLC = Array.from(cityObj);
    }
-   
+
 
    //console.log("Enter dCityList, After JSON parse; cityObj value ", cityObj, typeof (cityObj));
 
-   // If first time, cityObj is null -> do not need to loop
+   // If first time, cityObj is null -> if (cityObj) = false, thus would not loop
    // Else, Loop thru each city and create new element & append(display) to list-group-history
-   if (cityObj){
+   // add a listener to the bigger container "list-group-history"
+   // once triggered, retrieve the correspond position in the cityObj array, and make the call to display that data. 
+   if (cityObj) {
       for (x = 0; x < cityObj.length; x++) {
          var cityLi = $("<div>").text(cityObj[x]).css({
             "border-style": "solid",
             "margin": 0,
             "padding": 0
          });
+         console.log("city to be added to history list", cityLi.attr('data-city'));
          $(".list-group-history").append(cityLi);
+
       } // End For
    }
 } // end dCity List
 
 
-// Wait for user click Search Button
+// Listener: Wait for user click Search Button
 $("#search-button").on("click", fetchData);
+
+
+// Listener: wait for user click on a historical search NEW REVIEW call weather API
+$(".list-group-history").on("click", function () {
+
+   event.stopPropagation();
+   event.preventDefault();
+
+   // Retrieve user input city if user click on list of history 
+   // Pass this city to weather API to get weather data
+   console.log("clciked event is:", event.target);
+
+   city = $(event.target).text();
+   console.log("Retreived City is: ", city)
+   weatherAPI(city);
+
+});
+
 
 
 // Function fetchData Make API call to retrieve current and 5 days objects
@@ -74,13 +96,20 @@ function fetchData(event) {
    // Retrieve user input city
    city = $("#search-value").val();
 
-   // Add this user entered city to the local storage array
-   arrayLC.push(city);
+
+   // Check if this city is already in the array of cities
+   // if NOT (!tmpvar will return a false) -> Add this new entered city to the local storage array
+   // If already there, no need to add
+   let tmpvar = arrayLC.find(x => x == city)
+   if(!tmpvar) {
+      arrayLC.push(city);
+   }
+   
 
    //console.log("After pushed, array first index 0 value:", arrayLC[0], typeof(arrayLC));
-   // arrayLC.forEach(function(z){
-   //    console.log("Check each item in the arrayLC:",z);
-   // })
+   arrayLC.forEach(function (z) {
+      console.log("Check each item in the arrayLC:", z);
+   })
 
    // Local Storage only store Strings, not Object like array
    // Hence, need JSON stringify to convert the array as string first
@@ -88,9 +117,15 @@ function fetchData(event) {
 
    // After user click search, should Reflect lastest Search history list
    dCityList();
+   weatherAPI(city);
 
+} // End fetchData
+
+function weatherAPI(city) {
    // Fetch current weather data
+   
    wURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
+   console.log("url to be fetched: ",wURL);
 
    $.ajax({
       url: wURL,
@@ -101,14 +136,16 @@ function fetchData(event) {
 // This function will use the input obj, extract the Lat and Longtitude info
 // Lat/Lon are required parameters to make oneCall API, which give current and 5 days forecast data
 function processData(wObject) {
-
-   //working:  https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&%20&exclude=minutely,hourly&appid=0e3be3e2387201a17d65f7f6c8b863cb
+   
+   console.log("process Data wObject", wObject);
+   //oneCallURL=  "https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&%20&exclude=minutely,hourly&appid=0e3be3e2387201a17d65f7f6c8b863cb"
    oneCallURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + wObject.coord.lat + "&lon=" + wObject.coord.lon + "&exclude=minutely, hourly&appid=" + APIKey;
+  
    $.ajax({
       url: oneCallURL,
       method: "GET"
    }).then(function (onecallObj) {
-      //console.log("Processed object is a one call obj:", onecallObj);
+      console.log("Processed object using this city:", city);
       renderCurrent(onecallObj);
       $("#forecast").empty();
       $("#forecast").append($("<div>").text("5 day Forecast: ") // Add a title before displaying 5 days forecast
